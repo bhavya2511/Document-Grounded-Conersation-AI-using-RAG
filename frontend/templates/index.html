@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Workspace</title>
+<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Space+Grotesk:wght@300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{"primary":"#1f6187","secondary":"#3a6286","tertiary":"#27627b","surface":"#fefadd","background":"#fefadd","surface-container":"#f3efd2","surface-container-low":"#f8f5d8","surface-container-high":"#ede9cd","surface-container-highest":"#e7e3c7","surface-variant":"#e7e3c7","on-surface":"#1d1c0b","on-surface-variant":"#41484e","on-primary":"#ffffff","on-secondary":"#ffffff","primary-container":"#3e7aa1","secondary-container":"#aed5ff","on-secondary-container":"#355d81","tertiary-container":"#437b95","outline":"#71787f","outline-variant":"#c0c7cf","error":"#ba1a1a","error-container":"#ffdad6","inverse-surface":"#32311e","primary-fixed":"#c8e6ff","primary-fixed-dim":"#93cdf8","on-primary-fixed":"#001e2f","secondary-fixed":"#cee5ff","on-secondary-fixed":"#001d33","on-secondary-fixed-variant":"#1f4a6c","tertiary-fixed":"#bfe8ff","tertiary-fixed-dim":"#97ceea","on-tertiary-fixed":"#001f2a","on-tertiary-fixed-variant":"#054d65","surface-tint":"#226489","on-background":"#1d1c0b","on-primary-container":"#fcfcff","inverse-primary":"#93cdf8"},fontFamily:{"serif":["Newsreader","Georgia","serif"],"mono":["Space Grotesk","monospace"],"sans":["Inter","system-ui","sans-serif"]}}}}
+</script>
+<style>
+*{box-sizing:border-box}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+html,body{height:100%;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(116,155,194,.3);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:rgba(31,97,135,.4)}
+
+/* 3-panel layout */
+.workspace-grid{display:grid;grid-template-columns:240px 1fr 1fr;height:calc(100vh - 52px)}
+@media(max-width:1200px){.workspace-grid{grid-template-columns:200px 1fr 1fr}}
+@media(max-width:900px){.workspace-grid{grid-template-columns:0px 1fr 1fr}.sidebar-col{display:none}}
+@media(max-width:640px){.workspace-grid{grid-template-columns:1fr}.viewer-col{display:none}}
+
+.msg-in{animation:msgIn .2s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.blink{animation:blk 1.2s infinite}
+@keyframes blk{0%,100%{opacity:.2}50%{opacity:1}}
+
+.hl-box{position:absolute;background:rgba(145,200,228,.28);border:2px solid rgba(31,97,135,.6);border-radius:2px;pointer-events:none;animation:hlPop .4s ease}
+@keyframes hlPop{0%{box-shadow:0 0 0 0 rgba(31,97,135,.5)}70%{box-shadow:0 0 0 8px rgba(31,97,135,0)}100%{box-shadow:0 0 0 0 rgba(31,97,135,0)}}
+
+.cit-chip{display:inline;background:rgba(31,97,135,.12);border:1px solid rgba(145,200,228,.5);color:#1f6187;font-family:'Space Grotesk',monospace;font-size:10px;padding:1px 6px;border-radius:3px;cursor:pointer;transition:all .15s;vertical-align:baseline;margin:0 1px;text-decoration:none}
+.cit-chip:hover{background:#1f6187;color:#fff;border-color:#1f6187}
+
+.upload-overlay{position:fixed;inset:0;background:#fefadd;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.upload-overlay::before{content:'';position:absolute;inset:0;background-image:linear-gradient(to right,rgba(116,155,194,.08) 1px,transparent 1px),linear-gradient(to bottom,rgba(116,155,194,.08) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+
+.pulse-dot{animation:pd 1.5s infinite}
+@keyframes pd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+
+.tab-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px;cursor:pointer;border:none;background:none;color:#71787f;font-family:'Space Grotesk',monospace;font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:all .15s;border-bottom:2px solid transparent;flex:1}
+.tab-btn:hover{color:#1f6187}
+.tab-btn.active{color:#1f6187;border-bottom-color:#1f6187;background:rgba(31,97,135,.05)}
+.tab-panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.tab-panel.active{display:flex}
+
+/* ── Markdown rendered content in chat ── */
+.md-content h1,.md-content h2,.md-content h3,.md-content h4{font-family:'Newsreader',Georgia,serif;color:#1f6187;margin:12px 0 6px 0;font-weight:600}
+.md-content h1{font-size:18px} .md-content h2{font-size:16px} .md-content h3{font-size:14px;font-style:italic} .md-content h4{font-size:13px}
+.md-content p{margin:4px 0;line-height:1.65}
+.md-content ul,.md-content ol{margin:6px 0 6px 18px;padding:0}
+.md-content ul{list-style:disc} .md-content ol{list-style:decimal}
+.md-content li{margin:3px 0;line-height:1.55}
+.md-content li::marker{color:#1f6187}
+.md-content strong{font-weight:600;color:#1f6187}
+.md-content em{font-style:italic;color:#41484e}
+.md-content code{font-family:'Space Grotesk',monospace;font-size:11px;background:rgba(31,97,135,.08);border:1px solid rgba(31,97,135,.15);padding:1px 5px;border-radius:3px;color:#1f6187}
+.md-content pre{background:#1d1c0b;color:#fefadd;padding:10px 14px;border-radius:4px;overflow-x:auto;margin:8px 0;font-family:'Space Grotesk',monospace;font-size:11px;line-height:1.5}
+.md-content pre code{background:none;border:none;padding:0;color:inherit}
+.md-content blockquote{border-left:3px solid #1f6187;background:rgba(31,97,135,.04);padding:6px 12px;margin:8px 0;color:#41484e;font-style:italic}
+
+/* Tables */
+.md-content table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px;font-family:'Space Grotesk',monospace}
+.md-content thead{background:#1f6187;color:#fff}
+.md-content th{padding:6px 10px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;border:1px solid rgba(31,97,135,.3)}
+.md-content td{padding:5px 10px;border:1px solid #c0c7cf;color:#1d1c0b}
+.md-content tbody tr:nth-child(even){background:rgba(31,97,135,.04)}
+.md-content tbody tr:hover{background:rgba(31,97,135,.08)}
+
+/* Horizontal rule */
+.md-content hr{border:none;border-top:1px solid #c0c7cf;margin:12px 0}
+</style>
+</head>
+<body class="bg-background text-on-background font-sans">
+
+<!-- ═══════════ UPLOAD OVERLAY ═══════════ -->
+<div class="upload-overlay" id="uploadOverlay">
+  <div class="relative bg-surface border border-outline-variant shadow-2xl p-10 max-w-md w-full" style="border-radius:2px">
+    <div class="text-4xl text-primary mb-4 select-none">◈</div>
+    <h1 class="font-serif text-3xl font-semibold text-primary mb-2 italic">Welcome to DocRAG</h1>
+    <p class="text-sm text-on-surface-variant mb-8 leading-relaxed">Secure, AI-powered document intelligence. Upload a PDF to begin your grounded conversation.</p>
+
+    <!-- Existing Docs Hint (shown if docs exist) -->
+    <div id="existingDocsHint" class="mb-6 hidden">
+      <div class="font-mono text-[10px] text-primary uppercase tracking-widest mb-2">Continue with existing:</div>
+      <div id="existingDocsList" class="flex flex-col gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+        <!-- Rendered by app.js -->
+      </div>
+      <div class="h-px bg-outline-variant my-6"></div>
+      <div class="font-mono text-[10px] text-on-surface-variant/50 uppercase tracking-widest mb-2 text-center">OR UPLOAD NEW</div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div 
+      id="dropZone"
+      class="border-2 border-dashed border-outline-variant bg-surface-container-low p-10 text-center cursor-pointer hover:border-primary transition-all group"
+      onclick="document.getElementById('fileInputMain').click()"
+      style="border-radius:2px"
+    >
+      <input type="file" id="fileInputMain" class="hidden" accept=".pdf">
+      <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📤</div>
+      <div class="text-xs font-semibold text-on-surface mb-1">Click to browse or drag PDF here</div>
+      <div class="text-[10px] text-on-surface-variant/50 font-mono italic">Adani Portfolio Annual Reports, Contracts, etc.</div>
+    </div>
+
+    <!-- Progress (hidden initially) -->
+    <div id="uploadProgress" class="hidden text-left mt-6">
+      <div class="h-1 bg-surface-container-high overflow-hidden mb-4">
+        <div id="progressFill" class="h-full bg-primary transition-all duration-500" style="width:0%"></div>
+      </div>
+      <div class="flex gap-4 mb-3 flex-wrap">
+        <span id="step1" class="font-mono text-xs text-on-surface-variant/50">◯ Extract</span>
+        <span id="step2" class="font-mono text-xs text-on-surface-variant/50">◯ Chunk</span>
+        <span id="step3" class="font-mono text-xs text-on-surface-variant/50">◯ Embed</span>
+        <span id="step4" class="font-mono text-xs text-on-surface-variant/50">◯ Index</span>
+      </div>
+      <p id="progressMsg" class="font-mono text-xs text-on-surface-variant">Initializing…</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TOP NAV ═══════════ -->
+<header class="bg-primary text-on-primary h-[52px] flex items-center px-5 gap-4 sticky top-0 z-100">
+  <a href="/" class="font-serif font-bold text-lg tracking-tight text-on-primary/90 hover:text-on-primary transition-colors flex-shrink-0">DocRAG</a>
+  <div class="w-px h-5 bg-on-primary/20 flex-shrink-0"></div>
+  <!-- doc status -->
+  <div class="flex items-center gap-2 flex-1 min-w-0">
+    <span class="w-2 h-2 rounded-full bg-on-primary/30 flex-shrink-0" id="statusDot"></span>
+    <span id="docStatusText" class="font-mono text-xs text-on-primary/50 truncate">No document loaded</span>
+  </div>
+  <!-- nav actions -->
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <button id="clearChatBtn" class="font-mono text-xs text-on-primary/60 hover:text-on-primary border border-on-primary/20 hover:border-on-primary/50 px-3 py-1.5 transition-all">↺ Clear</button>
+    <label for="fileInputNav" class="font-mono text-xs bg-on-primary/15 hover:bg-on-primary/25 text-on-primary border border-on-primary/30 px-3 py-1.5 cursor-pointer transition-all">＋ Upload PDF</label>
+    <input type="file" id="fileInputNav" accept=".pdf" class="hidden"/>
+    <button onclick="handleLogout()" class="font-mono text-xs bg-error/80 hover:bg-error text-on-primary border border-on-primary/30 px-3 py-1.5 cursor-pointer transition-all ml-2">Logout</button>
+  </div>
+</header>
+
+<script>
+async function checkAuth() {
+    try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) {
+            window.location.href = '/';
+        }
+    } catch(e) {
+        window.location.href = '/';
+    }
+}
+checkAuth();
+
+async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/';
+}
+</script>
+
+<!-- ═══════════ WORKSPACE ═══════════ -->
+<div class="workspace-grid" id="appShell" style="display:none">
+
+  <!-- ═══ LEFT SIDEBAR ═══ -->
+  <aside class="sidebar-col flex flex-col border-r border-outline-variant bg-surface-container-low overflow-hidden">
+    <!-- Tabs -->
+    <div class="flex border-b border-outline-variant flex-shrink-0">
+      <button class="tab-btn active" data-tab="tab-chunks" onclick="switchTab('tab-chunks',this)">
+        <span class="material-symbols-outlined" style="font-size:16px">search</span>Chunks
+      </button>
+      <button class="tab-btn" data-tab="tab-history" onclick="switchTab('tab-history',this)">
+        <span class="material-symbols-outlined" style="font-size:16px">history</span>History
+      </button>
+      <button class="tab-btn" data-tab="tab-docs" onclick="switchTab('tab-docs',this)">
+        <span class="material-symbols-outlined" style="font-size:16px">folder_open</span>Docs
+      </button>
+    </div>
+
+    <!-- Tab: Top-K Chunks -->
+    <div class="tab-panel active" id="tab-chunks">
+      <div class="font-mono text-[9px] text-on-surface-variant/60 uppercase tracking-widest px-3 py-2 border-b border-outline-variant flex-shrink-0">Top-K Retrieved Chunks</div>
+      <div class="flex-1 overflow-y-auto p-2" id="chunksList">
+        <div class="text-center py-8 px-4">
+          <div class="font-mono text-xs text-on-surface-variant/50 leading-relaxed">Ask a question to see retrieved chunks appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Evidence History -->
+    <div class="tab-panel" id="tab-history">
+      <div class="font-mono text-[9px] text-on-surface-variant/60 uppercase tracking-widest px-3 py-2 border-b border-outline-variant flex-shrink-0">Evidence History</div>
+      <div class="flex-1 overflow-y-auto p-2" id="evidenceList">
+        <div class="text-center py-8 px-4">
+          <div class="font-mono text-xs text-on-surface-variant/50 leading-relaxed">Evidence from past queries will appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Documents -->
+    <div class="tab-panel" id="tab-docs">
+      <div class="font-mono text-[9px] text-on-surface-variant/60 uppercase tracking-widest px-3 py-2 border-b border-outline-variant flex-shrink-0">Indexed Documents</div>
+      <div class="flex-1 overflow-y-auto p-2" id="docList">
+        <div class="text-center py-8 px-4">
+          <div class="text-2xl mb-3">📄</div>
+          <div class="font-mono text-xs text-on-surface-variant/50 leading-relaxed">No documents indexed yet.<br/>Upload a PDF to begin.</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ CHAT PANEL ═══ -->
+  <section class="flex flex-col border-r border-outline-variant overflow-hidden bg-background">
+    <div class="flex items-center justify-between px-4 py-2.5 border-b border-outline-variant bg-surface-container-low flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-primary text-base select-none">◈</span>
+        <span class="font-serif italic text-base font-semibold text-primary">Chat Assistant</span>
+      </div>
+      <button id="clearChatBtn2" class="font-mono text-xs text-on-surface-variant hover:text-primary border border-outline-variant hover:border-primary px-2.5 py-1 transition-all">Clear</button>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3" id="messages">
+      <div class="flex justify-center">
+        <div class="bg-surface-container border border-outline-variant text-on-surface-variant text-xs font-mono px-4 py-2 max-w-sm text-center leading-relaxed">
+          Document loaded. Ask any question — answers are grounded in the document with clickable citations.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="border-t border-outline-variant p-3 bg-surface-container-low flex-shrink-0">
+      <div class="flex gap-2 items-end">
+        <textarea id="queryInput" rows="1"
+          class="flex-1 bg-surface border border-outline-variant text-on-surface text-sm font-sans px-3 py-2 resize-none focus:outline-none focus:border-primary transition-colors max-h-28 leading-relaxed"
+          placeholder="Ask a question about the document…"></textarea>
+        <button id="sendBtn"
+          class="bg-primary text-on-primary w-9 h-9 flex items-center justify-center hover:bg-primary/90 transition-all flex-shrink-0 text-base font-bold disabled:opacity-40">→</button>
+      </div>
+      <div class="flex justify-between mt-1.5 px-0.5">
+        <span id="sessionInfo" class="font-mono text-[10px] text-on-surface-variant/40"></span>
+        <span id="charCount" class="font-mono text-[10px] text-on-surface-variant/40">0 / 500</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ PDF VIEWER PANEL ═══ -->
+  <section class="viewer-col flex flex-col overflow-hidden bg-surface-container-high">
+    <!-- Toolbar -->
+    <div class="flex items-center gap-2 px-3 py-2 border-b border-outline-variant bg-surface-container-low flex-shrink-0 flex-wrap">
+      <div class="flex items-center gap-1">
+        <button id="prevPage" class="w-7 h-7 flex items-center justify-center border border-outline-variant hover:border-primary hover:text-primary text-on-surface-variant transition-all text-sm">‹</button>
+        <span class="font-mono text-xs text-on-surface-variant min-w-[52px] text-center">
+          <span id="currentPage">1</span> / <span id="totalPages">—</span>
+        </span>
+        <button id="nextPage" class="w-7 h-7 flex items-center justify-center border border-outline-variant hover:border-primary hover:text-primary text-on-surface-variant transition-all text-sm">›</button>
+      </div>
+      <div class="w-px h-4 bg-outline-variant"></div>
+      <div class="flex items-center gap-1">
+        <button id="zoomOut" class="w-7 h-7 flex items-center justify-center border border-outline-variant hover:border-primary hover:text-primary text-on-surface-variant transition-all">−</button>
+        <span id="zoomLevel" class="font-mono text-xs text-on-surface-variant min-w-[36px] text-center">150%</span>
+        <button id="zoomIn" class="w-7 h-7 flex items-center justify-center border border-outline-variant hover:border-primary hover:text-primary text-on-surface-variant transition-all">＋</button>
+        <button id="fitBtn" class="w-7 h-7 flex items-center justify-center border border-outline-variant hover:border-primary hover:text-primary text-on-surface-variant transition-all text-xs" title="Fit width">⊡</button>
+      </div>
+      <div class="w-px h-4 bg-outline-variant"></div>
+      <div class="flex items-center gap-1">
+        <button id="modeInteractive" class="font-mono text-[10px] px-2 py-1 border border-primary bg-primary text-on-primary transition-all" title="Interactive PDF">PDF</button>
+        <button id="modeHighlight" class="font-mono text-[10px] px-2 py-1 border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-all" title="Server highlight">HI</button>
+      </div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#d0ccb0]" id="pdfArea">
+      <div class="relative shadow-2xl bg-white" id="pdfCanvasWrap">
+        <canvas id="pdfCanvas"></canvas>
+        <div id="highlightLayer" class="absolute inset-0 pointer-events-none"></div>
+      </div>
+    </div>
+
+    <!-- Server-highlight image mode -->
+    <div class="flex-1 overflow-auto flex items-start justify-center p-4 bg-[#d0ccb0] hidden" id="hlImageArea">
+      <img id="hlImage" src="" alt="Highlighted page" class="shadow-2xl max-w-full"/>
+    </div>
+
+    <!-- Heatmap -->
+    <div class="flex items-center gap-2 px-3 py-1.5 border-t border-outline-variant bg-surface-container-low flex-shrink-0 min-h-[32px] overflow-x-auto">
+      <span class="font-mono text-[9px] text-on-surface-variant/50 uppercase tracking-widest flex-shrink-0">Cited:</span>
+      <div class="flex gap-1.5 items-end" id="heatmapBars"></div>
+    </div>
+  </section>
+
+</div><!-- /workspace-grid -->
+
+<!-- ═══════════ TOAST ═══════════ -->
+<div class="fixed bottom-4 right-4 flex flex-col gap-2 z-[999]" id="toastWrap"></div>
+
+<script src="/static/js/pdf_viewer.js"></script>
+<script src="/static/js/evidence_panel.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

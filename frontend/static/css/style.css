@@ -1,0 +1,270 @@
+/* ═══════════════════════════════════════════════════════════
+   DocRAG — Global Styles
+   Tailwind handles layout/colors in HTML.
+   This file covers: scrollbars, animations, PDF viewer,
+   citation chips, and overrides that Tailwind can't inline.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── RESET / BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+
+/* ── SCROLLBARS ───────────────────────────────────────────── */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgba(116,155,194,.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(31,97,135,.45); }
+
+/* ── FONTS ────────────────────────────────────────────────── */
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #fefadd;
+  color: #1d1c0b;
+}
+
+/* ── NAV Z-INDEX ──────────────────────────────────────────── */
+header.sticky { z-index: 100; }
+
+/* ── THREE-PANEL GRID ─────────────────────────────────────── */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr 1fr;
+  height: calc(100vh - 52px);
+}
+
+@media (max-width: 1200px) {
+  .workspace-grid { grid-template-columns: 200px 1fr 1fr; }
+}
+
+@media (max-width: 900px) {
+  .workspace-grid  { grid-template-columns: 0px 1fr 1fr; }
+  .sidebar-col     { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  .workspace-grid  { grid-template-columns: 1fr; }
+  .viewer-col      { display: none !important; }
+}
+
+/* ── SIDEBAR TABS ─────────────────────────────────────────── */
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: #71787f;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  transition: all .15s;
+  border-bottom: 2px solid transparent;
+  flex: 1;
+  white-space: nowrap;
+}
+
+.tab-btn:hover { color: #1f6187; background: rgba(31,97,135,.03); }
+
+.tab-btn.active {
+  color: #1f6187;
+  border-bottom-color: #1f6187;
+  background: rgba(31,97,135,.06);
+}
+
+.tab-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+/* ── CITATION CHIPS (inline in chat bubbles) ──────────────── */
+.cit-chip {
+  display: inline;
+  background: rgba(31,97,135,.1);
+  border: 1px solid rgba(145,200,228,.5);
+  color: #1f6187;
+  font-family: 'Space Grotesk', monospace;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  vertical-align: baseline;
+  margin: 0 1px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cit-chip:hover {
+  background: #1f6187;
+  color: #ffffff;
+  border-color: #1f6187;
+  text-decoration: none;
+}
+
+/* ── MESSAGES ─────────────────────────────────────────────── */
+.msg-in {
+  animation: msgIn .2s ease;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Thinking dots */
+.blink { animation: blinkDot 1.2s infinite; }
+@keyframes blinkDot {
+  0%,100% { opacity: .2; }
+  50%      { opacity: 1;  }
+}
+
+/* ── PDF VIEWER ───────────────────────────────────────────── */
+#pdfArea, .pdf-area-inner {
+  overflow: auto;
+}
+
+#pdfCanvasWrap {
+  position: relative;
+  background: #ffffff;
+  display: inline-block;
+}
+
+#highlightLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Individual highlight box drawn over chunks */
+.hl-box {
+  position: absolute;
+  background: rgba(145,200,228,.28);
+  border: 2px solid rgba(31,97,135,.6);
+  border-radius: 2px;
+  pointer-events: none;
+  animation: hlPop .45s ease;
+}
+
+@keyframes hlPop {
+  0%   { box-shadow: 0 0 0 0   rgba(31,97,135,.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(31,97,135,0);   }
+  100% { box-shadow: 0 0 0 0   rgba(31,97,135,0);   }
+}
+
+/* ── UPLOAD OVERLAY ───────────────────────────────────────── */
+.upload-overlay {
+  position: fixed;
+  inset: 0;
+  background: #fefadd;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.upload-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(116,155,194,.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(116,155,194,.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+/* ── DROP ZONE ────────────────────────────────────────────── */
+.drop-zone-active {
+  border-color: #1f6187 !important;
+  background: rgba(31,97,135,.05) !important;
+}
+
+/* ── TOAST ────────────────────────────────────────────────── */
+.toast-enter {
+  animation: toastIn .2s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+/* ── STATUS DOT ───────────────────────────────────────────── */
+.status-loading {
+  animation: pd 1.5s infinite;
+}
+
+@keyframes pd {
+  0%,100% { opacity: 1;  transform: scale(1);   }
+  50%      { opacity: .3; transform: scale(.75); }
+}
+
+/* ── EVIDENCE CARDS (sidebar) ─────────────────────────────── */
+.ev-card, .chunk-card {
+  transition: border-color .15s, background .15s;
+}
+
+.ev-card:hover, .chunk-card:hover {
+  border-color: rgba(31,97,135,.5) !important;
+}
+
+.ev-card.active, .chunk-card.active {
+  border-color: #1f6187 !important;
+  background: rgba(31,97,135,.06) !important;
+}
+
+/* ── LANDING PAGE ANIMATIONS ──────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+.reveal.on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.float-anim {
+  animation: floaty 5s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%,100% { transform: translateY(0);    }
+  50%      { transform: translateY(-10px); }
+}
+
+.pulse {
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .3; }
+}
+
+.prog-fill {
+  animation: progAnim 3s ease-in-out infinite;
+}
+
+@keyframes progAnim {
+  0%   { width: 40%; }
+  50%  { width: 93%; }
+  100% { width: 40%; }
+}
+
+/* ── MISC ─────────────────────────────────────────────────── */
+button:focus-visible, a:focus-visible {
+  outline: 2px solid #1f6187;
+  outline-offset: 2px;
+}
+
+strong { font-weight: 600; }

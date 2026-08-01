@@ -1,0 +1,84 @@
+{
+  "document": "AEL_Earnings_Presentation_Q2-FY26.pdf",
+  "description": "Ground truth Q&A pairs for acceptance testing",
+  "qa_pairs": [
+    {
+      "id": "grounded_fact_1",
+      "category": "grounded_fact",
+      "question": "What are the major business segments discussed in the document?",
+      "expected_keywords": ["Airports", "Mining Services", "IRM", "ANIL", "Roads", "Data Center"],
+      "must_have_citation": true,
+      "must_not_say": "Not found in the document"
+    },
+    {
+      "id": "numeric_1",
+      "category": "numeric",
+      "question": "What is the consolidated total income in H1-26?",
+      "expected_value": "44,281",
+      "must_have_citation": true,
+      "must_not_say": "Not found in the document"
+    },
+    {
+      "id": "numeric_2",
+      "category": "numeric",
+      "question": "What is the EBITDA for H1-26?",
+      "expected_value": "7,688",
+      "must_have_citation": true
+    },
+    {
+      "id": "cross_section_1",
+      "category": "cross_section",
+      "question": "What drivers are mentioned for EBITDA changes in H1-26?",
+      "expected_keywords": ["IRM", "Commercial Mining", "price volatility", "trade volume", "Airports"],
+      "must_have_citation": true,
+      "must_not_say": "Not found in the document"
+    },
+    {
+      "id": "negative_control_1",
+      "category": "negative_control",
+      "question": "What is the CEO's email address?",
+      "expected_response": "Not found in the document.",
+      "must_say": "Not found in the document"
+    },
+    {
+      "id": "negative_control_2",
+      "category": "negative_control",
+      "question": "What is the stock price of AEL today?",
+      "expected_response": "Not found in the document.",
+      "must_say": "Not found in the document"
+    },
+    {
+      "id": "conversational_1a",
+      "category": "conversational",
+      "question": "Summarize airport performance in H1-26.",
+      "expected_keywords": ["EBITDA", "51%", "passengers", "cargo", "2,157"],
+      "must_have_citation": true,
+      "is_first_in_sequence": true,
+      "sequence_id": "airport_sequence"
+    },
+    {
+      "id": "conversational_1b",
+      "category": "conversational",
+      "question": "Break that down into passenger and cargo changes.",
+      "expected_keywords": ["passengers", "cargo", "46.0", "5.7"],
+      "must_have_citation": true,
+      "is_followup": true,
+      "sequence_id": "airport_sequence",
+      "depends_on": "conversational_1a"
+    },
+    {
+      "id": "numeric_3",
+      "category": "numeric",
+      "question": "What is the total income of AAHL airports in H1-26?",
+      "expected_value": "5,882",
+      "must_have_citation": true
+    },
+    {
+      "id": "numeric_4",
+      "category": "numeric",
+      "question": "By what percentage did AAHL EBITDA increase in H1-26?",
+      "expected_value": "51",
+      "must_have_citation": true
+    }
+  ]
+}

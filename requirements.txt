@@ -1,0 +1,41 @@
+# Core Framework
+flask==3.0.3
+flask-cors==4.0.0
+python-dotenv==1.0.1
+
+# LangChain + LangGraph
+langchain==0.3.7
+langchain-community==0.3.7
+langchain-google-genai==2.0.4
+langgraph==0.2.45
+
+# Google Gemini
+google-generativeai==0.8.3
+
+# Groq fallback
+groq==0.11.0
+
+# Vector Store
+qdrant-client==1.11.3
+
+# PDF Processing
+pymupdf==1.24.13
+pdfplumber==0.11.4
+Pillow==10.4.0
+
+# Embeddings + Reranker (local, no GPU needed)
+sentence-transformers==3.2.1
+rank-bm25==0.2.2
+
+# Semantic Chunking
+langchain-experimental==0.3.3
+
+# Utilities
+numpy==1.26.4
+tqdm==4.66.5
+python-multipart==0.0.12
+aiofiles==24.1.0
+requests==2.32.3
+pickle5==0.0.12; python_version < "3.8"
+paddlex>=3.0.0
+paddlepaddle>=2.6.0
